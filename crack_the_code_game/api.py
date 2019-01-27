@@ -30,7 +30,7 @@ def new_game_id():
 del counting
 
 
-@api_blueprint.route('/new/')
+@api_blueprint.route('/game/')
 def new_game():
     id = new_game_id()
     kwargs = request.args.to_dict()
@@ -47,22 +47,25 @@ def new_game():
     return jsonify(res)
 
 
-@api_blueprint.route('/<int:game_id>/')
+@api_blueprint.route('/game/<int:game_id>/', methods=['GET'])
 def get_game(game_id):
     if game_id not in storage.keys():
         abort(404)
     return jsonify(storage[game_id].game_state_dict)
 
 
-@api_blueprint.route('/<int:game_id>/crack/')
+@api_blueprint.route('/game/<int:game_id>/', methods=['POST'])
 def crack(game_id):
-    state = request.args.to_dict().get('state', '')
+    if not request.is_json:
+        abort(400)
+
+    state = request.json.get('state', '')
     try:
         state = list(map(int, state.split(',')))
     except ValueError:
         abort(400)
 
-    if game_id not in storage.keys():
+    if game_id not in storage:
         abort(404)
 
     gstate = storage[game_id]

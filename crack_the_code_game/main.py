@@ -14,9 +14,10 @@ def index():
 app.register_blueprint(api_blueprint, url_prefix='/api')
 
 """
-new_game() => game_id
-get_game(game_id) => state
-test_it(game_id, state) => cracking result
+get /api/game/ => id, game state
+get /api/game/<id>/ => game state
+post /api/game/<id>/ => cracking result
+	body: state
 
 // если стоит на нужном месте и нужный цвет - белый
 // если нужный цвет но на ненужном месте - черный

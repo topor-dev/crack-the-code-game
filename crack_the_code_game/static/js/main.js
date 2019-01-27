@@ -1,9 +1,19 @@
-function fetch_json(url, callback){
-	fetch(url)
-		.then((response)=>{
-		return response.json()
-	})
-		.then(e=>callback(e));
+const default_api = {
+	headers: new Headers({'Content-Type': 'application/json'}),
+	method: 'GET',
+}
+
+const API = {
+	new_game: Object.assign({}, default_api, {
+		url: ()=>'/api/game/'
+	}),
+	get_game: Object.assign({}, default_api, {
+		url: (id)=>`/api/game/${id}/`,
+	}),
+	validate: Object.assign({}, default_api, {
+		url: (id)=>`/api/game/${id}/`,
+		method: 'POST',
+	}),
 }
 
 Vue.component('new_game_button',{
@@ -11,18 +21,22 @@ Vue.component('new_game_button',{
 		new_game: function(){
 			param = '?' +
 					'cell_count=' + this.$data.cell_count + '&' +
-					'max_color=' + this.$data.max_color;
+					'max_color=' + this.$data.max_color
 
 			that = this
-			fetch_json('/api/new/' + param, (data)=>{
-				that.$root.new_game(data);
-			})
+			var settings = API.new_game
+			fetch(settings.url() + param, {settings})
+				.then((response)=>response.json())
+				.then((data)=>{
+					that.$root.new_game(data)
+				})
+				.catch((error)=>console.log(error))
 		}
 	},
 	data: function(){
 		return {
-			'cell_count': 3,
-			'max_color': 4,
+			cell_count: 3,
+			max_color: 4,
 		}
 	},
 	template: '<div>' +
@@ -87,39 +101,44 @@ new Vue({
 	},
 	computed: {
 		selects_count: function(){
-			return this.$data.game.cell_count || 0;
+			return this.$data.game.cell_count || 0
 		},
 		max_color_count: function(){
-			return this.$data.game.max_color || 0;
+			return this.$data.game.max_color || 0
 		},
 	},
 	methods: {
 		new_game: function(data){
-			this.$root.$data.game = data;
-			this.$root.$data.id = data.id;
-			this.crack_result_list = [];
+			this.$root.$data.game = data
+			this.$root.$data.id = data.id
+			this.crack_result_list = []
 		},
 		crack: function(state){
 			that = this
 			var variant = state.join(',')
-			fetch_json('/api/' + this.$data.id + '/crack/?state=' + variant, (data)=>{
-				that.$data.game = data
-				that.$data.crack_result_list.push({
-					variant: variant, 
-					data: data.crack_result
+			var settings = API.validate
+			fetch(settings.url(this.$data.id), Object.assign({}, settings, {
+				body: JSON.stringify({state: variant})}))
+				.then((response)=>response.json())
+				.then((data)=>{
+					that.$data.game = data
+					that.$data.crack_result_list.push({
+						variant: variant,
+						data: data.crack_result
+					})
+
+					if (data.attempts_remind < 0){
+						alert('Ты проиграл(а) :(\nНе расстраивайся, попробуй еще раз!')
+						return
+					}
+
+					var win_condition = data.crack_result.length == data.cell_count &&
+						data.crack_result.every(e=>e == '*')
+					if(win_condition){
+						alert('Ты победил(а)!')
+					}
 				})
-				var g = data
-
-
-				if (g.attempts_remind <= 0){
-					alert('Ты проиграл(а) :(\nНе расстраивайся, попробуй еще раз!');
-				} 
-
-				var win_condition = g.crack_result.length == g.cell_count && g.crack_result.every(e=>e == '*')
-				if(win_condition){
-					alert('Ты победил(а)!')
-				} 
-			})
+				.catch((error)=>console.log(error))
 		}
 	}
 })
