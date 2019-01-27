@@ -11,8 +11,8 @@ class NoMoreAttempsException(Exception):
 
 
 class ValidResult(Enum):
-    ColorAndPlaceMatch = "*"
-    ColorMatch = "+"
+    ColorAndPlaceMatch = '*'
+    ColorMatch = '+'
 
 
 class GameState:
@@ -22,7 +22,7 @@ class GameState:
         )
 
         if any(map(lambda v: v < 0, (max_color, cell_count, max_attempts))):
-            raise ValueError("Params must be positive numbers")
+            raise ValueError('Params must be positive numbers')
 
         self.state = [random.randint(0, max_color) for _ in range(cell_count)]
         self.max_attempts = max_attempts
@@ -76,7 +76,7 @@ class GameState:
     @property
     def game_state_dict(self):
         return {
-            "attempts_remind": self.max_attempts - self.attempt,
-            "max_color": self.max_color,
-            "cell_count": self.cell_count,
+            'attempts_remind': self.max_attempts - self.attempt,
+            'max_color': self.max_color,
+            'cell_count': self.cell_count,
         }

@@ -10,7 +10,7 @@ from .gamestate import GameState
 
 storage = {}  # type: Dict[int, GameState]
 
-api_blueprint = Blueprint("api", __name__)
+api_blueprint = Blueprint('api', __name__)
 
 
 def counting(f):
@@ -30,7 +30,7 @@ def new_game_id():
 del counting
 
 
-@api_blueprint.route("/new/")
+@api_blueprint.route('/new/')
 def new_game():
     id = new_game_id()
     kwargs = request.args.to_dict()
@@ -41,24 +41,24 @@ def new_game():
         abort(400)
     storage[id] = gs
 
-    res = {"id": id}
+    res = {'id': id}
     res.update(gs.game_state_dict)
 
     return jsonify(res)
 
 
-@api_blueprint.route("/<int:game_id>/")
+@api_blueprint.route('/<int:game_id>/')
 def get_game(game_id):
     if game_id not in storage.keys():
         abort(404)
     return jsonify(storage[game_id].game_state_dict)
 
 
-@api_blueprint.route("/<int:game_id>/crack/")
+@api_blueprint.route('/<int:game_id>/crack/')
 def crack(game_id):
-    state = request.args.to_dict().get("state", "")
+    state = request.args.to_dict().get('state', '')
     try:
-        state = list(map(int, state.split(",")))
+        state = list(map(int, state.split(',')))
     except ValueError:
         abort(400)
 
@@ -71,7 +71,7 @@ def crack(game_id):
         abort(400)
 
     res = {
-        "crack_result": list(map(lambda e: e.value, gstate.crack(state)))
+        'crack_result': list(map(lambda e: e.value, gstate.crack(state)))
         if gstate.can_attempt()
         else []
     }
