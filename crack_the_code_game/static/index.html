@@ -79,8 +79,8 @@
 			},
 		},
 		props: ['selects_count', 'max_color_count'],	
-		template: '<div><select v-for="select_id in selects_count" :id="select_id-1">' +
-				  '<option v-for="item in (max_color_count+1)">{{item-1}}</option>' +
+		template: '<div><select v-for="select_id in selects_count" :key="select_id" :id="select_id-1">' +
+				  '<option v-for="item in (max_color_count+1)" :key="item">{{item-1}}</option>' +
 				  '</select>' +
 				  '<button v-if="selects_count > 0" v-on:click="go_crack">попробовать этот вариант</button></div>',
 //				  '<button v-if="selects_count > 0" v-on:click="go_crack">try it</button></div>',
@@ -101,7 +101,7 @@
 				})
 			},
 		},
-		template: '<div><span v-text="res.variant"></span> - <div v-for="(item,index) in res2class" class="crack-result" :class="item"></div></div>',
+		template: '<div><span v-text="res.variant"></span> - <div v-for="(item,index) in res2class" :key="index" class="crack-result" :class="item"></div></div>',
 	})
 
 
@@ -112,7 +112,7 @@
 				  '<tester style="display:inline" :selects_count=selects_count :max_color_count=max_color_count></tester>' +
 				  '<div v-if="game.crack_result">' +
 				  	'<div>ключ - результат</div>' +
-					'<crack_result v-for="res in crack_result_list" :res=res></crack_result>' +
+					'<crack_result v-for="(res,index) in crack_result_list" :key="index" :res=res></crack_result>' +
 				  '</div>' + 
 				  '</div>',
 		data: {

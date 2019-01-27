@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import Flask
 
 from .api import api_blueprint
 
@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return open(app.jinja_env.get_template("index.html").filename, "r").read()
+    return app.send_static_file("index.html")
 
 
 app.register_blueprint(api_blueprint, url_prefix="/api")
