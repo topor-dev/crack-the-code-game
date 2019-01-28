@@ -16,6 +16,13 @@ const API = {
 	}),
 }
 
+
+const ValidationResult = {
+    ColorAndPlaceMatch: 0,
+    ColorMatch: 1,
+}
+
+
 Vue.component('new_game_button',{
 	methods: {
 		new_game: function(){
@@ -53,7 +60,6 @@ Vue.component('tester', {
 			for(var elem of this.$el.getElementsByTagName('select')){
 				key.push(elem.selectedIndex)
 			}
-			document.t = this
 			this.$root.crack(key)
 		},
 	},
@@ -62,25 +68,24 @@ Vue.component('tester', {
 			  '<option v-for="item in (max_color_count+1)" :key="item">{{item-1}}</option>' +
 			  '</select>' +
 			  '<button v-if="selects_count > 0" v-on:click="go_crack">попробовать этот вариант</button></div>',
-//				  '<button v-if="selects_count > 0" v-on:click="go_crack">try it</button></div>',
 })
 
 Vue.component('crack_result', {
 	props: ['res'],
 	computed: {
 		res2class: function(){
-			return this.res.data.map(e=>{
+			return this.res.crack_result.map(e=>{
 				switch(e){
-					case '*':
+					case ValidationResult.ColorAndPlaceMatch:
 						return 'full-match'
-					case '+':
+					case ValidationResult.ColorMatch:
 						return 'partial-match'
 				}
 				return ''
 			})
 		},
 	},
-	template: '<div><span v-text="res.variant"></span> - <div v-for="(item,index) in res2class" :key="index" class="crack-result" :class="item"></div></div>',
+	template: '<div><span v-text="res.state"></span> - <div v-for="(item,index) in res2class" :key="index" class="crack-result" :class="item"></div></div>',
 })
 
 
@@ -89,15 +94,14 @@ new Vue({
 	template: '<div><new_game_button></new_game_button><br/>' +
 			  '<div v-if="game.attempts_remind > -1">попыток осталось: {{game.attempts_remind}}</div>' +
 			  '<tester style="display:inline" :selects_count=selects_count :max_color_count=max_color_count></tester>' +
-			  '<div v-if="game.crack_result">' +
+			  '<div v-if="game.attempts && game.attempts.length > 0">' +
 			  	'<div>ключ - результат</div>' +
-				'<crack_result v-for="(res,index) in crack_result_list" :key="index" :res=res></crack_result>' +
+				'<crack_result v-for="(res,index) in game.attempts" :key="index" :res=res></crack_result>' +
 			  '</div>' + 
 			  '</div>',
 	data: {
 		game: {},
 		id: -1,
-		crack_result_list: [],
 	},
 	computed: {
 		selects_count: function(){
@@ -111,29 +115,29 @@ new Vue({
 		new_game: function(data){
 			this.$root.$data.game = data
 			this.$root.$data.id = data.id
-			this.crack_result_list = []
 		},
 		crack: function(state){
 			that = this
-			var variant = state.join(',')
+			var str_state = state.join(',')
 			var settings = API.validate
-			fetch(settings.url(this.$data.id), Object.assign({}, settings, {
-				body: JSON.stringify({state: variant})}))
+			fetch(settings.url(this.$data.id), Object.assign({}, settings,
+				{body: JSON.stringify({state: str_state})}))
 				.then((response)=>response.json())
 				.then((data)=>{
-					that.$data.game = data
-					that.$data.crack_result_list.push({
-						variant: variant,
-						data: data.crack_result
+					that.$data.game.attempts.push({
+						state: state,
+						crack_result: data.crack_result,
 					})
+					that.$data.game.attempts_remind = data.attempts_remind
+
 
 					if (data.attempts_remind < 0){
 						alert('Ты проиграл(а) :(\nНе расстраивайся, попробуй еще раз!')
 						return
 					}
 
-					var win_condition = data.crack_result.length == data.cell_count &&
-						data.crack_result.every(e=>e == '*')
+					var win_condition = data.crack_result.length == that.$data.game.cell_count &&
+						data.crack_result.every(e=>e == ValidationResult.ColorAndPlaceMatch)
 					if(win_condition){
 						alert('Ты победил(а)!')
 					}

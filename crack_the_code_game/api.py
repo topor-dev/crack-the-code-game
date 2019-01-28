@@ -73,10 +73,9 @@ def crack(game_id):
     if len(state) != len(gstate.state):
         abort(400)
 
-    res = {
-        'crack_result': list(map(lambda e: e.value, gstate.crack(state)))
-        if gstate.can_attempt()
-        else []
-    }
-    res.update(gstate.game_state_dict)
-    return jsonify(res)
+    return jsonify(
+        {
+            'crack_result': (gstate.crack(state) if gstate.can_attempt() else []),
+            'attempts_remind': gstate.attempts_remind,
+        }
+    )

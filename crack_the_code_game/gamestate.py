@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import IntEnum
 import random
 import itertools
 
@@ -10,9 +10,9 @@ class NoMoreAttempsException(Exception):
     pass
 
 
-class ValidResult(Enum):
-    ColorAndPlaceMatch = '*'
-    ColorMatch = '+'
+class ValidationResult(IntEnum):
+    ColorAndPlaceMatch = 0
+    ColorMatch = 1
 
 
 class GameState:
@@ -26,26 +26,26 @@ class GameState:
 
         self.state = [random.randint(0, max_color) for _ in range(cell_count)]
         self.max_attempts = max_attempts
-        self.attempt = 0
+        self.attempts = []
         self.max_color = max_color
         self.cell_count = cell_count
 
     def can_attempt(self):
         # type: (GameState) -> bool
-        if self.attempt > self.max_attempts - 1:
+        if len(self.attempts) > self.max_attempts - 1:
             return False
         return True
 
     @staticmethod
     def __crack(orig, key):
-        # type: (List[int], List[int]) -> List[ValidResult]
+        # type: (List[int], List[int]) -> List[ValidationResult]
         orig, key = orig[:], key[:]
         res = []
 
         i = 0
         while i < len(orig):  # searching for full match
             if orig[i] == key[i]:
-                res.append(ValidResult.ColorAndPlaceMatch)
+                res.append(ValidationResult.ColorAndPlaceMatch)
                 key.pop(i)
                 orig.pop(i)
                 continue
@@ -54,7 +54,7 @@ class GameState:
         i = 0
         while i < len(orig):  # searching for match by color
             if orig[i] in key:
-                res.append(ValidResult.ColorMatch)
+                res.append(ValidationResult.ColorMatch)
                 key.remove(orig[i])
                 orig.pop(i)
                 continue
@@ -67,16 +67,19 @@ class GameState:
         if not self.can_attempt():
             raise NoMoreAttempsException()
 
-        self.attempt += 1
-        if self.state == state:
-            return [ValidResult.ColorAndPlaceMatch] * len(self.state)
+        crack_result = self.__crack(self.state, state)
+        self.attempts.append({'state': state, 'crack_result': crack_result})
+        return crack_result
 
-        return self.__crack(self.state, state)
+    @property
+    def attempts_remind(self):
+        return self.max_attempts - len(self.attempts)
 
     @property
     def game_state_dict(self):
         return {
-            'attempts_remind': self.max_attempts - self.attempt,
+            'attempts_remind': self.attempts_remind,
             'max_color': self.max_color,
             'cell_count': self.cell_count,
+            'attempts': self.attempts,
         }
