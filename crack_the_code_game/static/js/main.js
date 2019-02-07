@@ -160,23 +160,36 @@ Vue.component('game', {
 
 const app = new Vue({
 	el: '#main',
+	store,
 	data: {
 		colors: ['red', 'green', 'blue', 'yellow', 'violet', 'cyan','white'],
 		game: {},
 		id: -1,
 		game_stage: GameStageEnum.INIT,
 	},
-	computed: {
-		selects_count(){
-			return this.$data.game.cell_count || 0
+	computed: Object.assign(
+		{
+			selects_count(){
+				return this.$data.game.cell_count || 0
+			},
+			max_color_count(){
+				return this.$data.game.max_color || 0
+			},
+			game_stage_enum(){
+				return GameStageEnum
+			}
 		},
-		max_color_count(){
-			return this.$data.game.max_color || 0
-		},
-		game_stage_enum(){
-			return GameStageEnum
-		},
-	},
+		Vuex.mapGetters(['get_test']),
+		Vuex.mapState({
+			// test: state => state.test,
+			test: 'test',
+			// test(state){
+			// 	console.log(state)
+			// 	console.log(this.$store.getters.get_test)
+			// 	return state.getters.get_test
+			// },
+		}),
+	),
 	methods: {
 		new_game(data){
 			this.$root.$data.game = data
@@ -213,6 +226,9 @@ const app = new Vue({
 		}
 	},
 	template: `<div>
+	{{test}} | {{get_test}}
+	<button @click="$store.dispatch('inc2', 2)">gg</button>
+	<hr />
 	<rules v-if="game_stage == game_stage_enum.INIT"/>
 	<new_game_button v-if="game_stage != game_stage_enum.GAME"/>
 	<game :colors="colors" :attempts="20" v-if="game_stage == game_stage_enum.GAME"/>
