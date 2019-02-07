@@ -1,21 +1,39 @@
 *{
 	box-sizing: border-box;
 }
+body{
+	font-size: 2.5vh;
+}
+input, button, select, option, textarea {
+    font-size: 100%;
+}
+input[type=number]{
+	width: 75px;
+}
 .variant{
 	border-radius: 50%;
 	display: inline-block;
 	border: 0.1vmin solid gray;
 	margin: 0.1vmin;
-	height: 7vmin;
-	width: 7vmin;
+	height: 8vmin;
+	width: 8vmin;
 	cursor: pointer;
 }
+.results>div.variant{
+	height: 6vmin;
+	width: 6vmin;
+	margin-right: 2.1vmin;
+	border-radius: 35%;
+}
+.results>div.variant:first-child{
+	margin-left: 1.1vmin;
+}
 .variant.active{
-	box-shadow: inset 0 0 0 0.2vmin black;
+	box-shadow: inset 0 0 0 0.4vmin black;
 }
 .variants{
 	display: flex;
-		display: -webkit-flex;
+	display: -webkit-flex;
 }
 #game-container{
 	margin: 0 0.5vmin 0 0.5vmin;
@@ -26,14 +44,14 @@
 }
 .attempt{
 	border: 0.1vmin solid black;
-	padding: 0.5vmin;
-	margin: 0.15vmin 0.5vmin 0.15vmin 0.5vmin;
+	padding: 1.5vmin;
+	margin: 1.5vmin 0.5vmin 1.5vmin 0.5vmin;
 }
 #attempts-history-container{
 	overflow: auto;
-	height: 60vh;
+	height: 50vh;
 }
-#detect-button{
+#validate-button{
 	border: 1px solid black;
 	border-radius: 2vh;
 	cursor: pointer;
@@ -45,5 +63,4 @@
 	display: -webkit-flex;
 	justify-content: center;
 	align-items: center;
-	font-size: 2.5vh;
 }

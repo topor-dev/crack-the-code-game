@@ -16,18 +16,18 @@ class ValidationResult(IntEnum):
 
 
 class GameState:
-    def __init__(self, max_color=3, cell_count=3, max_attempts=8, **kwargs):
-        max_color, cell_count, max_attempts = map(
-            int, (max_color, cell_count, max_attempts)
+    def __init__(self, variants_count=3, cell_count=3, max_attempts=8, **kwargs):
+        variants_count, cell_count, max_attempts = map(
+            int, (variants_count, cell_count, max_attempts)
         )
 
-        if any(map(lambda v: v < 0, (max_color, cell_count, max_attempts))):
+        if any(map(lambda v: v < 0, (variants_count, cell_count, max_attempts))):
             raise ValueError('Params must be positive numbers')
 
-        self.state = [random.randint(0, max_color) for _ in range(cell_count)]
+        self.state = [random.randint(0, variants_count) for _ in range(cell_count)]
         self.max_attempts = max_attempts
         self.attempts = []
-        self.max_color = max_color
+        self.variants_count = variants_count
         self.cell_count = cell_count
 
     def can_attempt(self):
@@ -37,7 +37,7 @@ class GameState:
         return True
 
     @staticmethod
-    def __crack(orig, key):
+    def __validate(orig, key):
         # type: (List[int], List[int]) -> List[ValidationResult]
         orig, key = orig[:], key[:]
         res = []
@@ -62,14 +62,14 @@ class GameState:
 
         return res
 
-    def crack(self, state):
+    def validate(self, state):
         # type: (GameState, List[int]) -> List[Any]
         if not self.can_attempt():
             raise NoMoreAttempsException()
 
-        crack_result = self.__crack(self.state, state)
-        self.attempts.append({'state': state, 'crack_result': crack_result})
-        return crack_result
+        validation_result = self.__validate(self.state, state)
+        self.attempts.append({'state': state, 'validation_result': validation_result})
+        return validation_result
 
     @property
     def attempts_remind(self):
@@ -79,7 +79,7 @@ class GameState:
     def game_state_dict(self):
         return {
             'attempts_remind': self.attempts_remind,
-            'max_color': self.max_color,
+            'variants_count': self.variants_count,
             'cell_count': self.cell_count,
             'attempts': self.attempts,
         }

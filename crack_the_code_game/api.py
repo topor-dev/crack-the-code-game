@@ -55,7 +55,7 @@ def get_game(game_id):
 
 
 @api_blueprint.route('/game/<int:game_id>/', methods=['POST'])
-def crack(game_id):
+def validate(game_id):
     if not request.is_json:
         abort(400)
 
@@ -75,7 +75,9 @@ def crack(game_id):
 
     return jsonify(
         {
-            'crack_result': (gstate.crack(state) if gstate.can_attempt() else []),
+            'validation_result': (
+                gstate.validate(state) if gstate.can_attempt() else []
+            ),
             'attempts_remind': gstate.attempts_remind,
         }
     )

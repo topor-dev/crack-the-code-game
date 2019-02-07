@@ -1,41 +1,12 @@
-const default_api = {
-	headers: new Headers({'Content-Type': 'application/json'}),
-	method: 'GET',
-}
-
-const API = {
-	new_game: Object.assign({}, default_api, {
-		url: ()=>'/api/game/'
-	}),
-	get_game: Object.assign({}, default_api, {
-		url: (id)=>`/api/game/${id}/`,
-	}),
-	validate: Object.assign({}, default_api, {
-		url: (id)=>`/api/game/${id}/`,
-		method: 'POST',
-	}),
-}
-
-
-const ValidationResult = {
-    ColorAndPlaceMatch: 0,
-    ColorMatch: 1,
-}
-
-const GameStageEnum = {
-	INIT: 0,
-	GAME: 1,
-	AFTER_GAME: 2,
-}
-
-
 Vue.component('rules', {
 	template:`<div>
 		<hr>
 		<p>Правила:</p>
-		<p>Нужно подобрать правильную последовательность цифр.</p>
-		<p>В случае, если цифра верная и стоит на правильной позиции - белый круг</p>
-		<p>В случае, если цифра верная, но стоит на неправильной позиции - черный круг</p>
+		<p>Нужно подобрать правильную последовательность цветов.</p>
+		<p>Подсказками выступают индикаторы.</p>
+		<p>В случае, если цвет верный и стоит на правильной позиции - белый индикатор.</p>
+		<p>В случае, если цвет верный, но стоит на неправильной позиции - черный индикатор.</p>
+		<p>Если ни то, ни другое - индикатор серый.</p>
 		<hr>
 	</div>`
 })
@@ -43,74 +14,67 @@ Vue.component('rules', {
 Vue.component('new_game_button',{
 	methods: {
 		new_game(){
-			param = '?' +
-					'cell_count=' + this.$data.cell_count + '&' +
-					'max_color=' + this.$data.max_color
-
-			that = this
-			var settings = API.new_game
-			fetch(settings.url() + param, {settings})
-				.then((response)=>response.json())
-				.then((data)=>{
-					that.$root.new_game(data)
-				})
-				.catch((error)=>console.log(error))
+			this.$store.dispatch({
+				type: 'new_game',
+				cell_count: this.$data.cell_count,
+				variants_count: this.$data.variants_count,
+				max_attempts: this.$data.max_attempts,
+			})
 		}
 	},
 	data(){
 		return {
 			cell_count: 3,
-			max_color: 4,
+			variants_count: 4,
+			max_attempts: 8,
 		}
 	},
-	template: '<div>' +
-			  'количество ячеек:<input v-model="cell_count"></input><br/>' +
-			  'максимальная цифра в ячейке:<input v-model="max_color"></input><br/>' +
-			  '<button v-on:click="new_game">Новая игра</button></div>',
+	template: `<div>
+			   <p>С этими настройками можно поиграться:</p>
+			   <p>Количество ячеек: <input type="number" v-model="cell_count"></input></p>
+			   <p>Количество вариантов цветов: <input type="number" v-model="variants_count"></input></p>
+			   <p>Количество попыток: <input type="number" v-model="max_attempts"></input></p>
+			   <p><button @click="new_game">Новая игра</button></p>
+			   </div>`,
 })
 
 
 Vue.component('variant', {
 	props: {
-		init_id: {},
-		init_color: {default: 'white'},
-	},
-	data(){
-		return {
-			class_: '',
-			id: this.init_id,
-			color: this.init_color,
-		}
+		color: {default: 'white'},
 	},
 	template: `<div class="variant"
 		:style="{
 			'background-color': color
 		}"
-		:class="class_"
 	></div>`,
 })
 
 
 Vue.component('variants', {
-	props:['colors'],
 	methods: {
 		make_variant_active(e, id) {
-			for(let child of this.$children){
-				if (child.$data.id == id){
-					child.$data.class_ = 'active'
-					continue
-				}
-				child.class_ = ''
-			}
+			this.$store.commit({
+				type: 'make_active',
+				id: id,
+			})
+		},
+	},
+	computed: {
+		color_and_class(){
+			return this.$store.state.colors.map((e, id)=>({
+					color: e,
+					class: (this.$store.getters.is_variant_active(id)) ? 'active' : '', 
+			}))
 		},
 	},
 	template: `<div class="variants">
 	<variant
-		v-for="(color,id) in colors"
+		v-for="(obj,id) in color_and_class"
 		:key="id"
 		@click.native="make_variant_active($event, id)"
-		:init_color="color"
-		:init_id="id"
+		:color="obj.color"
+		:class="obj.class"
 	/>
 	</div>`,
 })
@@ -118,40 +82,82 @@ Vue.component('variants', {
 
 Vue.component('attempt', {
 	props: {
-		count: {default: 5},
+		is_current: {default: false},
+		colors: {default: ()=>[]},
 		result: {default: ()=>[]}, // should be factory
 	},
-	computed: {
+	methods: {
+		colorize(id){
+			this.$store.dispatch({
+				type: 'colorize',
+				id: id,
+			})
+		},
 	},
 	template: `<div class="attempt">
 		<div>
-			<variant v-for="id in count" :key="id" :init_id="id"/>
+			<variant
+				v-for="(color,id) in colors"
+				:color="color"
+				:key="id"
+				@click.native="colorize(id)"
+				/>
 		</div>
-		<div v-if="result.length > 0">
-			<div><hr/></div>
-			<variant v-for="e in result" :init_color="e && 'white' || 'black'"/>
+		<div v-if="is_current == false"><hr/></div>
+		<div v-if="is_current == false" class="results">
+			<variant v-for="(color,id) in result" :key="id" :color="color"/>
 		</div>
 	</div>`
 })
 
 
-Vue.component('detect-button', {
-	template: `<div id="detect-button">
+Vue.component('validate-button', {
+	methods: {
+		validate(){
+			this.$store.dispatch('validate')
+		}
+	},
+	template: `<div id="validate-button" @click="validate">
 		проверить
 	</div>`
 })
 
+
 Vue.component('game', {
-	props: ['colors', 'attempts'],
+	computed: {
+		attempts_history(){
+			let length = this.$store.state.game.cell_count
+
+			return this.$store.state.game.attempts.slice(0).reverse().map(attempt=>{
+				Array.prototype.push.apply(
+					attempt.result,
+					Array(length - attempt.result.length).fill(-1))
+				return {
+					colors: attempt.state.map(id=>this.$store.getters.id2color(id)),
+					result: attempt.result.map(id=>this.$store.getters.result_id_to_color(id)),
+				}
+			})
+		},
+		current_attempt_colors(){
+			return this.$store.getters.current_attempt_colors
+		},
+		attempts_remind(){
+			return this.$store.state.game.attempts_remind
+		},
+	},
 	template: `<div id="game-container">
 		<hr/>
-		<variants :colors="colors"/>
+		<variants/>
+		<div>попыток осталось: {{attempts_remind}}</div>
 		<hr/>
 		<div id="attempts-container">
-			<attempt/>
-			<detect-button/>
+			<attempt is_current="true" :colors="current_attempt_colors"/>
+			<validate-button/>
 			<div id="attempts-history-container">
-				<attempt v-for="att in attempts" :key="att" :result="[1,0,0]"/>
+				<attempt v-for="(att, id) in attempts_history" :key="id"
+					:colors="att.colors"
+					:result="att.result"
+					/>
 			</div>
 		</div>
 	</div>`,
@@ -161,76 +167,20 @@ Vue.component('game', {
 const app = new Vue({
 	el: '#main',
 	store,
-	data: {
-		colors: ['red', 'green', 'blue', 'yellow', 'violet', 'cyan','white'],
-		game: {},
-		id: -1,
-		game_stage: GameStageEnum.INIT,
-	},
 	computed: Object.assign(
 		{
-			selects_count(){
-				return this.$data.game.cell_count || 0
-			},
-			max_color_count(){
-				return this.$data.game.max_color || 0
-			},
 			game_stage_enum(){
 				return GameStageEnum
 			}
 		},
-		Vuex.mapGetters(['get_test']),
-		Vuex.mapState({
-			// test: state => state.test,
-			test: 'test',
-			// test(state){
-			// 	console.log(state)
-			// 	console.log(this.$store.getters.get_test)
-			// 	return state.getters.get_test
-			// },
-		}),
+		Vuex.mapState([
+			'game',
+			'game_stage'
+			]),
 	),
-	methods: {
-		new_game(data){
-			this.$root.$data.game = data
-			this.$root.$data.id = data.id
-			this.$root.$data.game_stage = GameStageEnum.GAME
-		},
-		crack(state){
-			that = this
-			var str_state = state.join(',')
-			var settings = API.validate
-			fetch(settings.url(this.$data.id), Object.assign({}, settings,
-				{body: JSON.stringify({state: str_state})}))
-				.then((response)=>response.json())
-				.then((data)=>{
-					that.$data.game.attempts.push({
-						state: state,
-						crack_result: data.crack_result,
-					})
-					that.$data.game.attempts_remind = data.attempts_remind
-
-
-					if (data.attempts_remind < 0){
-						alert('Ты проиграл(а) :(\nНе расстраивайся, попробуй еще раз!')
-						return
-					}
-
-					var win_condition = data.crack_result.length == that.$data.game.cell_count &&
-						data.crack_result.every(e=>e == ValidationResult.ColorAndPlaceMatch)
-					if(win_condition){
-						alert('Ты победил(а)!')
-					}
-				})
-				.catch((error)=>console.log(error))
-		}
-	},
 	template: `<div>
-	{{test}} | {{get_test}}
-	<button @click="$store.dispatch('inc2', 2)">gg</button>
-	<hr />
 	<rules v-if="game_stage == game_stage_enum.INIT"/>
 	<new_game_button v-if="game_stage != game_stage_enum.GAME"/>
-	<game :colors="colors" :attempts="20" v-if="game_stage == game_stage_enum.GAME"/>
+	<game :attempts="2" v-if="game_stage != game_stage_enum.INIT"/>
 	</div>`,
 })
