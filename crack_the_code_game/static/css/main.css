@@ -1,0 +1,49 @@
+*{
+	box-sizing: border-box;
+}
+.variant{
+	border-radius: 50%;
+	display: inline-block;
+	border: 0.1vmin solid gray;
+	margin: 0.1vmin;
+	height: 7vmin;
+	width: 7vmin;
+	cursor: pointer;
+}
+.variant.active{
+	box-shadow: inset 0 0 0 0.2vmin black;
+}
+.variants{
+	display: flex;
+		display: -webkit-flex;
+}
+#game-container{
+	margin: 0 0.5vmin 0 0.5vmin;
+	padding: 0.5vmin;
+}
+#attempts-container{
+	min-height: 200px;
+}
+.attempt{
+	border: 0.1vmin solid black;
+	padding: 0.5vmin;
+	margin: 0.15vmin 0.5vmin 0.15vmin 0.5vmin;
+}
+#attempts-history-container{
+	overflow: auto;
+	height: 60vh;
+}
+#detect-button{
+	border: 1px solid black;
+	border-radius: 2vh;
+	cursor: pointer;
+	margin: 2.5vmin auto 2.5vmin auto;
+	height: 6vh;
+	width: 45vw;
+	min-height: 35px;
+	display: flex;
+	display: -webkit-flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 2.5vh;
+}
