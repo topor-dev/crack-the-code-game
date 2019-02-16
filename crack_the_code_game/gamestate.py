@@ -24,7 +24,7 @@ class GameState:
         if any(map(lambda v: v < 0, (variants_count, cell_count, max_attempts))):
             raise ValueError('Params must be positive numbers')
 
-        self.state = [random.randint(0, variants_count) for _ in range(cell_count)]
+        self.state = [random.randint(0, variants_count - 1) for _ in range(cell_count)]
         self.max_attempts = max_attempts
         self.attempts = []
         self.variants_count = variants_count
