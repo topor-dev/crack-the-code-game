@@ -81,3 +81,11 @@ def validate(game_id):
             'attempts_remind': gstate.attempts_remind,
         }
     )
+
+
+@bp.route('/debug/<int:game_id>/', methods=['GET'])
+def debug_state(game_id):
+    game = storage.get(game_id)
+    if not game:
+        abort(404)
+    return jsonify({'game': game.game_state_dict, 'state': game.state})
