@@ -1,7 +1,7 @@
 import os
 from flask import Flask
 
-from .api import api_blueprint
+from crack_the_code_game import api
 
 app = Flask(__name__)
 
@@ -11,7 +11,7 @@ def index():
     return app.send_static_file('index.html')
 
 
-app.register_blueprint(api_blueprint, url_prefix='/api')
+app.register_blueprint(api.bp, url_prefix='/api')
 
 """
 get /api/game/ => id, game state
