@@ -32,11 +32,15 @@ del counting
 @bp.route('/game/')
 def new_game():
     id = new_game_id()
-    kwargs = request.args.to_dict()
+    req_args = request.args.to_dict()
 
+    kwargs = {}
+    for param in ('variants_count', 'cell_count', 'max_attempts'):
+        if param in req_args:
+            kwargs[param] = int(req_args[param])
     try:
         gs = GameState(**kwargs)
-    except ValueError:
+    except (ValueError, TypeError) as e:
         abort(400)
     storage[id] = gs
 

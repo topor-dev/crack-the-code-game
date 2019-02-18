@@ -3,6 +3,7 @@ import random
 from enum import IntEnum
 from typing import Any, Dict, List
 
+import attr
 from flask import Blueprint, abort, jsonify, request
 
 
@@ -15,20 +16,37 @@ class ValidationResult(IntEnum):
     ColorMatch = 1
 
 
+@attr.s
 class GameState:
-    def __init__(self, variants_count=3, cell_count=3, max_attempts=8, **kwargs):
-        variants_count, cell_count, max_attempts = map(
-            int, (variants_count, cell_count, max_attempts)
-        )
+    variants_count = attr.ib(
+        default=3, validator=attr.validators.instance_of(int)
+    )  # type: int
+    cell_count = attr.ib(
+        default=3, validator=attr.validators.instance_of(int)
+    )  # type: int
+    max_attempts = attr.ib(
+        default=8, validator=attr.validators.instance_of(int)
+    )  # type: int
 
-        if any(map(lambda v: v < 0, (variants_count, cell_count, max_attempts))):
-            raise ValueError('Params must be positive numbers')
+    attempts = attr.ib(init=False, factory=list)  # type: List[Dict]
+    state = attr.ib(init=False)  # type: List[int]
 
-        self.state = [random.randint(0, variants_count - 1) for _ in range(cell_count)]
-        self.max_attempts = max_attempts
-        self.attempts = []
-        self.variants_count = variants_count
-        self.cell_count = cell_count
+    @variants_count.validator
+    @cell_count.validator
+    @max_attempts.validator
+    def _(self, attribute, value):
+        if value < 0:
+            raise ValueError('%s must be positive numbers' % attribute.name)
+        max_value = 100
+        if value > max_value:
+            raise ValueError(
+                '%s must be smaller or equal to %d' % (attribute.name, max_value)
+            )
+
+    def __attrs_post_init__(self):
+        self.state = [  # not set in default, because before it need to call validators
+            random.randint(0, self.variants_count - 1) for _ in range(self.cell_count)
+        ]
 
     def can_attempt(self):
         # type: (GameState) -> bool
