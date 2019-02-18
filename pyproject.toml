@@ -10,6 +10,7 @@ repository= "https://github.com/topor-dev/crack-the-code-game"
 python = "^3.6"
 flask = "*"
 attrs = "^18.2"
+redis = "^3.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "*"
