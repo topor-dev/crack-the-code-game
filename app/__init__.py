@@ -1,17 +1,21 @@
-import os
+from typing import Callable
+
 from flask import Flask
 
-from crack_the_code_game import api
-
-app = Flask(__name__)
+from app import api
 
 
-@app.route('/')
-def index():
-    return app.send_static_file('index.html')
+def create_app():
+    # type: () -> Flask
+    app = Flask(__name__)
 
+    @app.route('/')
+    def index():
+        return app.send_static_file('index.html')
 
-app.register_blueprint(api.bp, url_prefix='/api')
+    app.register_blueprint(api.bp, url_prefix='/api')
+    return app
+
 
 """
 get /api/game/ => id, game state
@@ -22,3 +26,5 @@ post /api/game/<id>/ => cracking result
 // если стоит на нужном месте и нужный цвет - белый
 // если нужный цвет но на ненужном месте - черный
 """
+
+__all__ = ["create_app"]

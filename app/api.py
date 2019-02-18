@@ -5,7 +5,7 @@ import itertools
 from flask import abort, Blueprint, jsonify, request
 from typing import Dict
 
-from .gamestate import GameState
+from app.gamestate import GameState
 
 
 storage = {}  # type: Dict[int, GameState]
