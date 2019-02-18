@@ -43,6 +43,23 @@ class GameState:
                 '%s must be smaller or equal to %d' % (attribute.name, max_value)
             )
 
+    @staticmethod
+    def from_dict(state: Dict) -> 'GameState':
+        """Build GameState from dict, which got from attr.asdict(inst)
+        Works only with builtin attribute types
+
+        if need non builtin attribute (ex: class) see:
+        cattr, 
+        https://github.com/python-attrs/attrs/issues/140#issuecomment-277106952
+        """
+        gs = GameState()
+        for field in attr.fields(GameState):
+            if not field.name in state:
+                raise ValueError('%s field required' % field.name)
+            setattr(gs, field.name, state[field.name])
+        attr.validate(gs)
+        return gs
+
     def __attrs_post_init__(self):
         self.state = [  # not set in default, because before it need to call validators
             random.randint(0, self.variants_count - 1) for _ in range(self.cell_count)
