@@ -1,12 +1,11 @@
-from enum import Enum
-import random
 import itertools
-
-from flask import abort, Blueprint, jsonify, request
+import random
+from enum import Enum
 from typing import Dict
 
-from app.gamestate import GameState
+from flask import Blueprint, abort, jsonify, request
 
+from app.gamestate import GameState
 
 storage = {}  # type: Dict[int, GameState]
 

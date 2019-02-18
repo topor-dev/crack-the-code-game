@@ -1,9 +1,9 @@
-from enum import IntEnum
-import random
 import itertools
+import random
+from enum import IntEnum
+from typing import Any, Dict, List
 
-from flask import abort, Blueprint, jsonify, request
-from typing import List, Any, Dict
+from flask import Blueprint, abort, jsonify, request
 
 
 class NoMoreAttempsException(Exception):
