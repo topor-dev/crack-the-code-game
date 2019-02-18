@@ -6,32 +6,14 @@ from typing import Dict
 from flask import Blueprint, abort, jsonify, request
 
 from app.gamestate import GameState
-
-storage = {}  # type: Dict[int, GameState]
+from app.storage_holder import storage
 
 bp = Blueprint('api', __name__)
 
 
-def counting(f):
-    counter = itertools.count()
-
-    def closure():
-        return counter.__next__()
-
-    return closure
-
-
-@counting
-def new_game_id():
-    pass
-
-
-del counting
-
-
 @bp.route('/game/')
 def new_game():
-    id = new_game_id()
+    id = storage.new_game_id()
     req_args = request.args.to_dict()
 
     kwargs = {}
@@ -42,7 +24,7 @@ def new_game():
         gs = GameState(**kwargs)
     except (ValueError, TypeError) as e:
         abort(400)
-    storage[id] = gs
+    storage.set(id, gs)
 
     res = {'id': id}
     res.update(gs.game_state_dict)
@@ -52,9 +34,10 @@ def new_game():
 
 @bp.route('/game/<int:game_id>/', methods=['GET'])
 def get_game(game_id):
-    if game_id not in storage.keys():
+    game = storage.get(game_id)
+    if not game:
         abort(404)
-    return jsonify(storage[game_id].game_state_dict)
+    return jsonify(game.game_state_dict)
 
 
 @bp.route('/game/<int:game_id>/', methods=['POST'])
@@ -68,15 +51,14 @@ def validate(game_id):
     except ValueError:
         abort(400)
 
-    if game_id not in storage:
+    gstate = storage.get(game_id)
+    if not gstate:
         abort(404)
-
-    gstate = storage[game_id]
 
     if len(state) != len(gstate.state):
         abort(400)
 
-    return jsonify(
+    res = jsonify(
         {
             'validation_result': (
                 gstate.validate(state) if gstate.can_attempt() else []
@@ -84,6 +66,8 @@ def validate(game_id):
             'attempts_remind': gstate.attempts_remind,
         }
     )
+    storage.set(game_id, gstate)
+    return res
 
 
 @bp.route('/debug/<int:game_id>/', methods=['GET'])

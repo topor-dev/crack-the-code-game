@@ -3,11 +3,14 @@ from typing import Callable
 from flask import Flask, render_template
 
 from app import api
+from app.storage_holder import storage
 
 
 def create_app():
     # type: () -> Flask
     app = Flask(__name__)
+
+    storage.init_app(app)
 
     @app.route('/')
     def index():
