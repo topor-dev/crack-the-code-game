@@ -1,6 +1,6 @@
 from typing import Callable
 
-from flask import Flask
+from flask import Flask, render_template
 
 from app import api
 
@@ -11,7 +11,7 @@ def create_app():
 
     @app.route('/')
     def index():
-        return app.send_static_file('index.html')
+        return render_template('index.html')
 
     app.register_blueprint(api.bp, url_prefix='/api')
     return app
