@@ -19,7 +19,10 @@ def new_game():
     kwargs = {}
     for param in ('variants_count', 'cell_count', 'max_attempts'):
         if param in req_args:
-            kwargs[param] = int(req_args[param])
+            try:
+                kwargs[param] = int(req_args[param])
+            except TypeError:
+                abort(400)
     try:
         gs = GameState(**kwargs)
     except (ValueError, TypeError) as e:
