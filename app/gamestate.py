@@ -35,9 +35,9 @@ class GameState:
     @cell_count.validator
     @max_attempts.validator
     def _(self, attribute, value):
-        if value < 0:
-            raise ValueError('%s must be positive numbers' % attribute.name)
-        max_value = 100
+        if value < 1:
+            raise ValueError('%s must be greater than one' % attribute.name)
+        max_value = 25
         if value > max_value:
             raise ValueError(
                 '%s must be smaller or equal to %d' % (attribute.name, max_value)
