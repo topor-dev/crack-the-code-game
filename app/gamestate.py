@@ -28,7 +28,7 @@ class GameState:
         default=8, validator=attr.validators.instance_of(int)
     )  # type: int
 
-    attempts = attr.ib(init=False, factory=list)  # type: List[Dict]
+    attempts = attr.ib(init=False, factory=list)  # type: List[List[int]]
     state = attr.ib(init=False)  # type: List[int]
 
     @variants_count.validator
@@ -101,10 +101,8 @@ class GameState:
         # type: (GameState, List[int]) -> List[Any]
         if not self.can_attempt():
             raise NoMoreAttempsException()
-
-        validation_result = self.__validate(self.state, state)
-        self.attempts.append({'state': state, 'validation_result': validation_result})
-        return validation_result
+        self.attempts.append(state)
+        return self.__validate(self.state, state)
 
     @property
     def attempts_remind(self):
@@ -116,5 +114,13 @@ class GameState:
             'attempts_remind': self.attempts_remind,
             'variants_count': self.variants_count,
             'cell_count': self.cell_count,
-            'attempts': self.attempts,
+            'attempts': list(
+                map(
+                    lambda attempt: {
+                        'attempt': attempt,
+                        'validation_result': self.__validate(self.state, attempt),
+                    },
+                    self.attempts,
+                )
+            ),
         }
