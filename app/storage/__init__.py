@@ -16,7 +16,7 @@ def make_storage(type_: StorageType = StorageType.memory) -> Any:
         return MemoryStorage()
     if type_ == StorageType.redis:
         return RedisStorage()
-    raise NotADirectoryError()
+    raise NotImplementedError()
 
 
 __all__ = ['make_storage', 'StorageType']
