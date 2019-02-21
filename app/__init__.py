@@ -4,13 +4,14 @@ from typing import Type, Optional
 from flask import Flask, render_template
 
 from app import api
+from config import Config
 
 
-def create_app():
-    # type: () -> Flask
+def create_app(config_class: Type[Config] = Config) -> Flask:
     app = Flask(__name__)
+    app.config.from_object(config_class)
 
-    if os.environ.get('REDIS_URL'):
+    if app.config['USE_REDIS_STORAGE']:
         from app.storages import RedisStorage
 
         app.storage = RedisStorage(app)

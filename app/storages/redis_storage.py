@@ -3,6 +3,7 @@ import os
 
 import attr
 import redis
+from flask import current_app
 
 from app.gamestate import GameState
 
