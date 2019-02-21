@@ -114,7 +114,11 @@ Vue.component('attempt', {
 Vue.component('validate-button', {
 	methods: {
 		validate(){
-			this.$store.dispatch('validate')
+			if (this.$store.state.game_stage == GameStageEnum.GAME){
+ 				this.$store.dispatch('validate')
+			} else {
+				alert('Новая игра еще не начата')
+			}
 		}
 	},
 	template: `<div id="validate-button" @click="validate">
