@@ -3,17 +3,16 @@ import random
 from enum import Enum
 from typing import Dict
 
-from flask import Blueprint, abort, jsonify, request
+from flask import Blueprint, abort, current_app, jsonify, request
 
 from app.gamestate import GameState
-from app.storage_holder import storage
 
 bp = Blueprint('api', __name__)
 
 
 @bp.route('/game/')
 def new_game():
-    id = storage.new_game_id()
+    id = current_app.storage.new_game_id()
     req_args = request.args.to_dict()
 
     kwargs = {}
@@ -27,7 +26,7 @@ def new_game():
         gs = GameState(**kwargs)
     except (ValueError, TypeError) as e:
         abort(400)
-    storage.set(id, gs)
+    current_app.storage.set(id, gs)
 
     res = {'id': id}
     res.update(gs.game_state_dict)
@@ -37,7 +36,7 @@ def new_game():
 
 @bp.route('/game/<int:game_id>/', methods=['GET'])
 def get_game(game_id):
-    game = storage.get(game_id)
+    game = current_app.storage.get(game_id)
     if not game:
         abort(404)
     return jsonify(game.game_state_dict)
@@ -54,7 +53,7 @@ def validate(game_id):
     except ValueError:
         abort(400)
 
-    gstate = storage.get(game_id)
+    gstate = current_app.storage.get(game_id)
     if not gstate:
         abort(404)
 
@@ -69,13 +68,13 @@ def validate(game_id):
             'attempts_remind': gstate.attempts_remind,
         }
     )
-    storage.set(game_id, gstate)
+    current_app.storage.set(game_id, gstate)
     return res
 
 
 @bp.route('/debug/<int:game_id>/', methods=['GET'])
 def debug_state(game_id):
-    game = storage.get(game_id)
+    game = current_app.storage.get(game_id)
     if not game:
         abort(404)
     return jsonify({'game': game.game_state_dict, 'state': game.state})

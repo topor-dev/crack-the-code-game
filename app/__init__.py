@@ -1,16 +1,23 @@
-from typing import Callable
+import os
+from typing import Type, Optional
 
 from flask import Flask, render_template
 
 from app import api
-from app.storage_holder import storage
 
 
 def create_app():
     # type: () -> Flask
     app = Flask(__name__)
 
-    storage.init_app(app)
+    if os.environ.get('REDIS_URL'):
+        from app.storages import RedisStorage
+
+        app.storage = RedisStorage(app)
+    else:
+        from app.storages import MemoryStorage
+
+        app.storage = MemoryStorage(app)
 
     @app.route('/')
     def index():

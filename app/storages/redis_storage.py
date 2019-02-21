@@ -9,12 +9,12 @@ from app.gamestate import GameState
 from .base_storage import BaseStorage
 
 
-@attr.s
+@attr.s(init=False)
 class RedisStorage(BaseStorage):
-    redis_connection = attr.ib(init=False)
+    redis_connection = attr.ib(default=None)
 
     def init_app(self, app):
-        u = os.environ['REDIS_URL']
+        u = app.config['REDIS_URL']
         self.redis_connection = redis.from_url(u)
         r = self.redis_connection
         if not r.get('gid'):

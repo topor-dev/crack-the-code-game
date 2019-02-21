@@ -5,10 +5,10 @@ import attr
 from .base_storage import BaseStorage
 
 
-@attr.s
+@attr.s(init=False)
 class MemoryStorage(BaseStorage):
-    counter = attr.ib(factory=itertools.count, init=False)
-    storage = attr.ib(factory=dict, init=False)
+    counter = attr.ib(factory=itertools.count)
+    storage = attr.ib(factory=dict)
 
     def new_game_id(self):
         return self.counter.__next__()
